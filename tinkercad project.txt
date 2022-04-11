@@ -1,0 +1,124 @@
+// C++ code
+// Interfacing LCD and temp sensor with arduino uno
+
+#include <LiquidCrystal.h> // firstly we declared the library files
+
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // after that we declaring the lcd ports which we have used on arduino circuit board
+
+int baselineTemp ; then defined some variables baselinetemp and also define celsius its a double
+  double celsius ;
+
+const int fan = 9;  // then we defined the constant variables that will initialize the library with the number of interface pins
+const int buzzer = 13;
+
+void setup()      // in void setup function 
+{
+  pinMode(A0, INPUT);
+  Serial.begin(9600); 
+
+  lcd.begin(16,3);  // i have setup the lcds no of rows and columns 
+  pinMode(8, OUTPUT);
+  pinMode(7, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(fan,OUTPUT);
+  pinMode(buzzer, OUTPUT);
+
+  baselineTemp = 0;  //initialize baselinetemp variable is to 0
+  celsius = 0;       //also initialize temp variable to 0
+  lcd.print("Welcome");// then lcd will be display msg welcome
+  delay(500); // after that delay of 500 miliseconds
+  lcd.clear();
+  lcd.setCursor(0,0);  //then we have to set the cursor of LCD to 0 and 0
+  lcd.print("Automatic Temp"); // so it will be print control fan msg on lcd display
+    lcd.setCursor(0,1); // again set cursor to 0 and 1 
+  lcd.print("Control fan....."); // so then it will be print control fan
+  delay(3000); / after that wait for the 3 seconds 
+lcd.clear();  // then lcd is clear 
+  
+}
+
+void loop() /// towards void loop section this is the main loop in that
+{
+  {
+    lcd.print("   ");
+    baselineTemp = analogRead(A0);    // we reading the temp thats temp is equal to the analog read and temp pin is (A0)
+    celsius = (double) baselineTemp/1024;  //next this statement is to convert the baselinetemp value between range of 0 and 1
+    celsius = celsius*5;  // when we multiply by 5 this is that to convert the temp value between 0 and 1 so we get the no that is the representitive of voltage that we receive at o/p pin of temp 35  
+    celsius = celsius -0.5; // we substract with point 5 to incorporate the offset value it is in the form of one hundred of degree
+    celsius = celsius*100; // so we have to multiply by 100 
+    Serial.println(analogRead(A0)); // then we get display as actual degree celsius on LCD
+    lcd.setCursor(0,0); // then set lcd cursor to column 0 line0
+    lcd.print("Temperature is "); // and print temperature is 
+    lcd.setCursor(5,1);  // after that set cursor to 5 and 1 
+    lcd.print(celsius);   //then it will be reading the celsius and print it on LCD with the delay of 500
+    lcd.print(" C");
+    delay(500);
+    lcd.clear(); // then clear the LCD
+
+
+// now we adding the if satement here we have given the conditions
+
+    
+    if (celsius >0 && celsius<10)    // so when the temp is very less then fan automatically gets off 
+    {
+      analogWrite(9,0);
+      lcd.setCursor(5,0);
+      lcd.print("Fan Off");
+      lcd.setCursor(3,1);
+      lcd.print("Temp too low");
+      delay(2000);
+      lcd.clear();
+      digitalWrite(8, LOW);
+      digitalWrite(7, LOW);
+      digitalWrite(6, LOW);
+      noTone(buzzer);
+    }
+    if (celsius >=10 && celsius<25)   // when the temp is greater than 10 and less than 25 degree celcius then set pin no green to high and other pins 7,6 should be low for this condition 
+    {
+      analogWrite(fan,60);
+      lcd.print("Fan Speed: 20% ");
+      delay(2000);
+      lcd.clear();
+      digitalWrite(8, HIGH);
+      digitalWrite(7, LOW);
+      digitalWrite(6, LOW);
+      noTone(buzzer);
+    }
+    if (celsius >=25 && celsius<30) // if the temp value is greater than 25 and less than 30 means it is in between 25 to 30 then we will turn on the yellow light means set pin 7 to high and other to low
+    {
+      analogWrite(fan,100);
+      lcd.print("Fan Speed: 40% ");
+      delay(2000);
+      lcd.clear();
+      digitalWrite(8, LOW);
+      digitalWrite(7, HIGH);
+      digitalWrite(6, LOW);
+      noTone(buzzer);
+    }
+    if (celsius >=30 && celsius<40 ) // if the temp is equal to or greater than 30 and less than 40 degree celsius then pin no 6 will be active and green led will glow
+    {
+      analogWrite(fan,180);
+      lcd.print("Fan Speed: 60% ");
+      delay(2000);
+      lcd.clear();
+      digitalWrite(8, LOW);
+      digitalWrite(7, LOW);
+      digitalWrite(6, HIGH);
+      noTone(buzzer);
+    }
+    if (celsius > 40 )   // if the temp gets to high and greater than 40 degree celsius so we want to active all leds so thats why we sets all pins to high and also alerts buzzer for 1 seconds
+    { 
+      analogWrite(fan,255);
+      lcd.print("Fan Speed: 100% ");
+      delay(2000);
+      lcd.clear();
+      digitalWrite(8, HIGH);
+      digitalWrite(7, HIGH);
+      digitalWrite(6, HIGH);
+      tone(buzzer, 1000,1000);
+        delay(2000);
+        noTone(buzzer);
+        delay(1000);
+    }
+  }
+}
